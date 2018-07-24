@@ -58,6 +58,7 @@ void LED_Check(void);
 void PI_UART_SYNC(void);
 void Headphone_Check(void);
 void Button_Check(void);
+void brightnessToPi(uint16_t Brightness);
 
 uint16_t    counter = 0;
 
@@ -413,6 +414,7 @@ void Button_Check(void)
                 PWM_Value = 499;   //don't go above here
             }
             
+            brightnessToPi(PWM_Value);
             EPWM1_LoadDutyValue(PWM_Value);
             
             //delay how long here?
@@ -426,6 +428,7 @@ void Button_Check(void)
                 PWM_Value = 2;   //don't go below here
             }
             
+            brightnessToPi(PWM_Value);
             EPWM1_LoadDutyValue(PWM_Value);
             
             //delay how long here?
@@ -433,6 +436,19 @@ void Button_Check(void)
         }
     }
     
+}
+
+
+//Write the brightness value across the UART to the Pi.
+//  Need to break the value into two 8-bit pieces
+void brightnessToPi(uint16_t Brightness)
+{
+  uint8_t data[4] = {'V', 0, 0, 'Q'};
+    
+  data[1] = (uint8_t) ((Brightness >> 8) & 0xFF);
+  data[2] = (uint8_t) (Brightness & 0xFF);
+    
+  EUSART2_Write_Array(data, sizeof(data));
 }
 
 
