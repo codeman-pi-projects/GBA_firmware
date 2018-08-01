@@ -49,11 +49,12 @@
 #include "battery_control.h"
 #include "main_functions.h"
 
+#define DIFFTHRESHOLD 4   //Threshold for when to update the screen
 
-
-
+uint8_t Value_Changed(uint16_t Value);
 
 uint16_t    counter = 0;
+uint16_t Previous_Value = 0;  //Can start with 0, will just do an additional update
 
 /*
                          Main application
@@ -373,11 +374,15 @@ void Brightness_SW_Check(void)
             {
                 Screen_Control = 0;     //tell the code it's no longer in screen mode
                 SCREEN_SW_SetLow();
+                Brightness_Update(0);	//Clear the brightness image from the screen
             }
             else
             {
+                Battery_Displayed = 0;		//Turn off the battery indicator for the brightness mode
+                Update_Battery_Display(0);	
                 Screen_Control = 1;     //tell the code it's in screen mode
                 SCREEN_SW_SetHigh();
+				        Brightness_Update(PWM_Value);	//Set the brightness image on the screen
             }
         }
         
@@ -407,7 +412,13 @@ void Button_Check(void)
                 PWM_Value = 499;   //don't go above here
             }
             
-            Brightness_Update(PWM_Value);
+            //Only update the screen if the PWM_Value has changed by a specific threshold
+            //  This will reduce the number of screen re-draws
+            if(Value_Changed(PWM_Value, DIFFTHRESHOLD) == 1)
+            {
+              BrightnessUpdate(PWM_Value);
+            }  
+          
             EPWM1_LoadDutyValue(PWM_Value);
             
             //delay how long here?
@@ -421,7 +432,10 @@ void Button_Check(void)
                 PWM_Value = 2;   //don't go below here
             }
             
-            Brightness_Update(PWM_Value);
+            if(Value_Changed(PWM_Value, DIFFTHRESHOLD) == 1)
+            {
+              BrightnessUpdate(PWM_Value);
+            }
             EPWM1_LoadDutyValue(PWM_Value);
             
             //delay how long here?
@@ -430,6 +444,42 @@ void Button_Check(void)
     }
     
 }
+
+
+uint8_t Value_Changed(uint16_t Value, uint8_t Threshold)
+{
+	uint8_t difference = 0;
+	uint8_t result = 0;
+
+	if(Value > Previous_Value)
+	{
+		difference = Value - Previous_Value;
+	}
+	else if(Value < Previous_Value)
+	{
+		difference = Previous_Value - Value;
+	}
+	else
+	{
+		difference = 0;
+	}
+	
+	if(difference >= Threshold)
+	{
+		result = 1;
+		Previous_Value = Value;	//If threshold is passed, then set the previous value to the new value
+	}
+	else
+	{
+		result = 0;
+	}
+		
+	
+
+	return result;
+	
+}
+
 
 
 void Headphone_Check(void)
