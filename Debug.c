@@ -22,7 +22,6 @@ void DebugMenu(void)
         printf("4: ADC\n");
         printf("5: Battery Display\n");
         printf("6: Screen Brightness\n");
-        printf("7: Button Tester\n");
         printf("X:  Exit\n\n");
         
         printf("Selection:  ");
@@ -60,13 +59,7 @@ void DebugMenu(void)
             }
             case '6':
             {
-                Screen_Brightness_Debug();
-                break;
-            }
-            case '7':
-            {
-                Button_Tester();
-                break;        
+                Screen_Brightness_Debug();break;
             }
             case 'x':
             case 'X':
@@ -233,7 +226,7 @@ void MAX17048_Communication(void)
     uint8_t i2c_data[2];
     uint8_t ReadData = 0;
     
-    printf("\n\nI2C interface for the MAX17048");
+    printf("\n\nI2C interface for the TAS2521");
     printf("\nCommand Syntax (single spaces): Command Reg_Address Reg_Value");
     printf("\nAllowed values:  ");
     printf("\nCommand = Write, Read, Exit");
@@ -428,6 +421,7 @@ void Screen_Brightness_Debug(void)
         }
         else
         {
+            Brightness_Update(atoi(commands[0]));
             EPWM1_LoadDutyValue(atoi(commands[0]));
         }
         
@@ -435,44 +429,16 @@ void Screen_Brightness_Debug(void)
     }
 }
 
-
-void Button_Tester(void)
+void Brightness_Update(uint16_t Brightness)
 {
-    printf("\n\nButton tester (x to exit)");
-    printf("\nPush buttons on the AIO board to test");
-    char Button_Data = 0;
-    char User_input = 0; 
-    //send the command to enter button testing mode
-    uint8_t data[2] = {'B','Q'};
+    uint8_t data[4] = {'V', 0, 0, 'Q'};
+    
+    data[1] = (uint8_t) ((Brightness >> 8) & 0xFF);
+    data[2] = (uint8_t) (Brightness & 0xFF);
+    
     EUSART2_Write_Array(data, sizeof(data));
     
-    //R is to let computer know it's ready
-    EUSART1_Write('R');
-    
-    while(User_input != 'x')
-    {
-        if(EUSART2_DataReady)
-        {
-            //If the Pi sent any data, then immediately echo that back
-            //  to the user console
-            Button_Data = EUSART2_Read();
-            EUSART1_Write(Button_Data);
-        }
-        
-        if(EUSART1_DataReady)
-        {
-            User_input = EUSART1_Read();   
-        }
-        
-        if(BRIGHTNESS_GetValue() == 0)
-        {
-            EUSART1_Write('B');   
-        }
-        
-    }
-    
 }
-
 
 
 /*
