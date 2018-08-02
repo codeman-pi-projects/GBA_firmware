@@ -382,7 +382,7 @@ void Brightness_SW_Check(void)
                 Update_Battery_Display(0);	
                 Screen_Control = 1;     //tell the code it's in screen mode
                 SCREEN_SW_SetHigh();
-				        Brightness_Update(PWM_Value);	//Set the brightness image on the screen
+		Brightness_Update(PWM_Value);	//Set the brightness image on the screen
             }
         }
         
@@ -412,13 +412,7 @@ void Button_Check(void)
                 PWM_Value = 499;   //don't go above here
             }
             
-            //Only update the screen if the PWM_Value has changed by a specific threshold
-            //  This will reduce the number of screen re-draws
-            if(Value_Changed(PWM_Value, DIFFTHRESHOLD) == 1)
-            {
-              BrightnessUpdate(PWM_Value);
-            }  
-          
+            Brightness_Update(PWM_Value);
             EPWM1_LoadDutyValue(PWM_Value);
             
             //delay how long here?
@@ -432,10 +426,7 @@ void Button_Check(void)
                 PWM_Value = 2;   //don't go below here
             }
             
-            if(Value_Changed(PWM_Value, DIFFTHRESHOLD) == 1)
-            {
-              BrightnessUpdate(PWM_Value);
-            }
+            Brightness_Update(PWM_Value);
             EPWM1_LoadDutyValue(PWM_Value);
             
             //delay how long here?
