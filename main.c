@@ -352,20 +352,24 @@ void Brightness_SW_Check(void)
         //Toggle battery display if button is pressed for under 2 seconds
         else if(Brightness_Counter < TOGGLE_BATTERY)
         {
-            //Every time the battery is toggled on or off, be sure to
-            //  write the proper battery percent
-            Update_Battery_Icon(Battery_Percent);
+		//Only toggle the battery indicator if you are not under screen control
+		if(Screen_Control != 1)
+		{
+		    //Every time the battery is toggled on or off, be sure to
+		    //  write the proper battery percent
+		    Update_Battery_Icon(Battery_Percent);
 
-            if(Battery_Displayed == 0)
-            {
-                Battery_Displayed = 1;
-                Update_Battery_Display(1);
-            }
-            else
-            {
-                Battery_Displayed = 0;
-                Update_Battery_Display(0);
-            }
+		    if(Battery_Displayed == 0)
+		    {
+			Battery_Displayed = 1;
+			Update_Battery_Display(1);
+		    }
+		    else
+		    {
+			Battery_Displayed = 0;
+			Update_Battery_Display(0);
+		    }
+		}
 
         }
         else   //if it's greater than TOGGLE_BATTERY, then it is going to screen mode
